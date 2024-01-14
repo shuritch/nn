@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kohonen Network for Math Task</title>
+    <style>
+      canvas {
+        border: 1px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="kohonenCanvas" width="500" height="500"></canvas>
+
+    <script>
+      const canvas = document.getElementById('kohonenCanvas');
+      const context = canvas.getContext('2d');
+
+      const gridSize = 10;
+      const inputSize = 1;
+      const learningRate = 0.1;
+      const iterations = 5000;
+
+      let weights = [];
+
+      function initializeWeights() {
+        for (let i = 0; i < gridSize; i++) {
+          weights[i] = [];
+          for (let j = 0; j < gridSize; j++) {
+            weights[i][j] = Math.random();
+          }
+        }
+      }
+
+      function findBestMatchingUnit(input) {
+        let minDistance = Number.MAX_VALUE;
+        let bmu = { x: 0, y: 0 };
+
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            const distance = Math.abs(input - weights[i][j]);
+            if (distance < minDistance) {
+              minDistance = distance;
+              bmu = { x: i, y: j };
+            }
+          }
+        }
+
+        return bmu;
+      }
+
+      function updateWeights(bmu, input, iteration) {
+        const influence = Math.exp(-iteration / iterations);
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            const distanceToBmu = Math.sqrt((i - bmu.x) ** 2 + (j - bmu.y) ** 2);
+            const gaussian = Math.exp(-(distanceToBmu ** 2) / (2 * influence ** 2));
+            weights[i][j] += learningRate * gaussian * (input - weights[i][j]);
+          }
+        }
+      }
+
+      function trainKohonen() {
+        for (let iteration = 0; iteration < iterations; iteration++) {
+          const input = Math.random(); // Replace this with your input data
+          const bmu = findBestMatchingUnit(input);
+          updateWeights(bmu, input, iteration);
+        }
+      }
+
+      function drawGrid() {
+        const cellSize = canvas.width / gridSize;
+
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            const value = weights[i][j] * canvas.height;
+            context.fillStyle = `rgb(${Math.floor(value)}, 0, 0)`;
+            context.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+
+      function main() {
+        initializeWeights();
+        trainKohonen();
+        drawGrid();
+      }
+
+      main();
+    </script>
+  </body>
+</html>
